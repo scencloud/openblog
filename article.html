@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} - {{ settings.blog_name }}{% endblock %}
+
+{% block body %}
+<article class="article-detail">
+    {% if article.cover %}
+    <img src="/{{ article.cover }}" alt="{{ article.title }}" class="article-detail-cover">
+    {% endif %}
+
+    <h1 class="article-detail-title">{{ article.title }}</h1>
+
+    {% if article.summary %}
+    <div class="article-detail-summary">{{ article.summary }}</div>
+    {% endif %}
+
+    <div class="article-detail-content">
+        {{ article.content | safe }}
+    </div>
+
+    <a href="/" class="back-link">← 返回首页</a>
+</article>
+
+<footer class="site-footer">
+    Powered by OpenBlog
+</footer>
+{% endblock %}
