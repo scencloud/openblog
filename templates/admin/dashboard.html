@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}后台管理 - {{ settings.blog_name }}{% endblock %}
+
+{% block body %}
+<div class="admin-layout">
+    <nav class="admin-nav">
+        <span class="admin-nav-brand">{{ settings.blog_name }}</span>
+        <div class="admin-nav-links">
+            <a href="/blogadmin/dashboard" class="active">🏠 首页</a>
+            <a href="/blogadmin/articles">📝 文章</a>
+            <a href="/">🌐 前台</a>
+            <a href="/blogadmin/logout">🚪 退出</a>
+        </div>
+    </nav>
+
+    <div class="admin-content">
+        {% if settings.first_run %}
+        <div class="first-run-notice">
+            ⚠️ 首次登录，请立即修改默认密码！
+        </div>
+        {% endif %}
+
+        <h1 class="admin-page-title">// 后台管理</h1>
+
+        <div class="dashboard-cards">
+            <a href="/blogadmin/articles" class="dashboard-card">
+                <div class="dashboard-card-icon">📝</div>
+                <div class="dashboard-card-title">文章管理</div>
+            </a>
+            <a href="/blogadmin/settings" class="dashboard-card">
+                <div class="dashboard-card-icon">⚙️</div>
+                <div class="dashboard-card-title">站点设置</div>
+            </a>
+            <a href="/blogadmin/about" class="dashboard-card">
+                <div class="dashboard-card-icon">ℹ️</div>
+                <div class="dashboard-card-title">关于</div>
+            </a>
+            <a href="/blogadmin/change_password" class="dashboard-card">
+                <div class="dashboard-card-icon">🔑</div>
+                <div class="dashboard-card-title">修改密码</div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

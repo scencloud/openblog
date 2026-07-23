@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}文章管理 - {{ settings.blog_name }}{% endblock %}
+
+{% block body %}
+<div class="admin-layout">
+    <nav class="admin-nav">
+        <span class="admin-nav-brand">{{ settings.blog_name }}</span>
+        <div class="admin-nav-links">
+            <a href="/blogadmin/dashboard">🏠 首页</a>
+            <a href="/blogadmin/articles" class="active">📝 文章</a>
+            <a href="/">🌐 前台</a>
+            <a href="/blogadmin/logout">🚪 退出</a>
+        </div>
+    </nav>
+
+    <div class="admin-content">
+        <h1 class="admin-page-title">文章管理</h1>
+
+        <div class="articles-toolbar">
+            <div class="btn-group">
+                <a href="/blogadmin/article/new" class="btn btn-primary">➕ 新建文章</a>
+                <form method="POST" action="/blogadmin/sort" style="display: inline;">
+                    <button type="submit" class="btn btn-outline">
+                        {% if sort_mode == 'random' %}🎲 随机排序{% else %}⏰ 时间排序{% endif %}
+                    </button>
+                </form>
+            </div>
+            <span style="color: #999; font-size: 13px;">共 {{ articles|length }} 篇文章</span>
+        </div>
+
+        {% if articles %}
+        <table class="articles-table">
+            <thead>
+                <tr>
+                    <th>标题</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                <tr>
+                    <td>
+                        <strong>{{ article.title }}</strong>
+                    </td>
+                    <td>
+                        {% if article.is_pinned %}
+                        <span class="status-pin">📌 置顶</span>
+                        {% else %}
+                        <span class="status-normal">普通</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: #999; font-size: 13px;">{{ article.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="/blogadmin/article/edit/{{ article.id }}" class="btn btn-sm btn-outline">编辑</a>
+                            <form method="POST" action="/blogadmin/article/toggle_pin/{{ article.id }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-outline">
+                                    {% if article.is_pinned %}取消置顶{% else %}置顶{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="/blogadmin/article/delete/{{ article.id }}" style="display: inline;" onsubmit="return confirm('确定要删除这篇文章吗？此操作不可恢复。')">
+                                <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <p>还没有文章，点击上方"新建文章"开始创作吧~</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

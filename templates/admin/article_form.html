@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}{% if article %}编辑文章{% else %}新建文章{% endif %} - {{ settings.blog_name }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/quill/quill.snow.css">
+<script src="/static/quill/quill.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="admin-layout">
+    <nav class="admin-nav">
+        <span class="admin-nav-brand">{{ settings.blog_name }}</span>
+        <div class="admin-nav-links">
+            <a href="/blogadmin/dashboard">🏠 首页</a>
+            <a href="/blogadmin/articles" class="active">📝 文章</a>
+            <a href="/">🌐 前台</a>
+            <a href="/blogadmin/logout">🚪 退出</a>
+        </div>
+    </nav>
+
+    <div class="admin-content">
+        <h1 class="admin-page-title">{% if article %}编辑文章{% else %}新建文章{% endif %}</h1>
+
+        <div class="form-card">
+            <form method="POST" enctype="multipart/form-data" id="articleForm">
+                <div class="form-group">
+                    <label class="form-label">封面图</label>
+                    <input type="file" name="cover" accept="image/*" class="form-input">
+                    <p class="form-hint">支持 jpg/jpeg/png/gif/webp，将自动裁剪为3:2比例</p>
+                    {% if article and article.cover %}
+                    <div style="margin-top: 8px;">
+                        <img src="/{{ article.cover }}" style="max-width: 200px; border-radius: 8px;">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">标题 *</label>
+                    <input type="text" name="title" class="form-input" value="{{ title }}" maxlength="100" required placeholder="输入文章标题（1-100字符）">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">简介</label>
+                    <textarea name="summary" class="form-textarea" maxlength="200" rows="3" placeholder="输入文章简介（最多200字符）">{{ summary }}</textarea>
+                    <p class="form-hint">将显示在首页卡片中，最多2行</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">正文</label>
+                    <div class="editor-container">
+                        <div id="editor"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" name="is_pinned" {% if is_pinned %}checked{% endif %}>
+                        <span>📌 置顶文章（最多5篇）</span>
+                    </label>
+                </div>
+
+                <input type="hidden" name="content" id="contentInput">
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary" onclick="syncContent()">💾 保存</button>
+                    <a href="/blogadmin/articles" class="btn btn-outline">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+var quill = new Quill('#editor', {
+    theme: 'snow',
+    placeholder: '开始写作...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ]
+    }
+});
+
+// 加载已有内容
+var existingContent = {{ content | tojson }};
+if (existingContent) {
+    quill.root.innerHTML = existingContent;
+}
+
+// 图片上传
+quill.getModule('toolbar').addHandler('image', function() {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = function() {
+        var file = input.files[0];
+        if (!file) return;
+        var formData = new FormData();
+        formData.append('upload', file);
+        fetch('/upload/quill', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.url) {
+                var range = quill.getSelection();
+                quill.insertEmbed(range.index, 'image', data.url);
+            } else {
+                alert('上传失败：' + data.error);
+            }
+        });
+    };
+});
+
+// 视频上传
+quill.getModule('toolbar').addHandler('video', function() {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'video/*');
+    input.click();
+    input.onchange = function() {
+        var file = input.files[0];
+        if (!file) return;
+        var formData = new FormData();
+        formData.append('upload', file);
+        fetch('/upload/quill', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.url) {
+                var range = quill.getSelection();
+                quill.insertEmbed(range.index, 'video', data.url);
+            } else {
+                alert('上传失败：' + data.error);
+            }
+        });
+    };
+});
+
+function syncContent() {
+    document.getElementById('contentInput').value = quill.root.innerHTML;
+}
+</script>
+{% endblock %}
